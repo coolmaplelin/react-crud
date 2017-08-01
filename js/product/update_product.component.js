@@ -12,14 +12,19 @@ class UpdateProductComponent extends React.Component{
 	        name: '',
 	        description: '',
 	        price: 0,
-	        successUpdate: null
+	        successUpdate: null,
+	        validator: {
+	        	is_name_valid : true
+	        }
         };
 
-        // this.onCategoryChange = this.onCategoryChange.bind(this);
+        this.onCategoryChange = this.onCategoryChange.bind(this);
         this.onNameChange = this.onNameChange.bind(this);
-        // this.onDescriptionChange = this.onDescriptionChange.bind(this);
-        // this.onPriceChange = this.onPriceChange.bind(this);
-        // this.onSave = this.onSave.bind(this);
+        this.onDescriptionChange = this.onDescriptionChange.bind(this);
+        this.onPriceChange = this.onPriceChange.bind(this);
+        this.onSave = this.onSave.bind(this);
+        this.validateForm = this.validateForm.bind(this);
+        this.setValidatorState = this.setValidatorState.bind(this);
 
     }    
 
@@ -63,7 +68,11 @@ class UpdateProductComponent extends React.Component{
 	 
 	// handle name change
 	onNameChange(e){
-	    this.setState({name: e.target.value});
+		this.setState({name: e.target.value});
+
+		if (e.target.value != '') {
+			this.setValidatorState('is_name_valid', true);
+		}
 	}
 	 
 	// handle description change
@@ -79,32 +88,53 @@ class UpdateProductComponent extends React.Component{
 	// handle save changes button here	
 	// handle save changes button clicked
 	onSave(e){
-	 
-	    // data in the form
-	    var form_data={
-	        id: this.state.id,
-	        name: this.state.name,
-	        description: this.state.description,
-	        price: this.state.price,
-	        category_id: this.state.selectedCategoryId
-	    };
-	 
-	    // submit form data to api
-	    $.ajax({
-	        url: "http://react-crud/api/product/update.php",
-	        type : "POST",
-	        contentType : 'application/json',
-	        data : JSON.stringify(form_data),
-	        success : function(response) {
-	            this.setState({successUpdate: response['message']});
-	        }.bind(this),
-	        error: function(xhr, resp, text){
-	            // show error to console
-	            console.log(xhr, resp, text);
-	        }
-	    });
-	 
+	    
+	    if (this.validateForm()){
+
+	    	// data in the form
+		    var form_data={
+		        id: this.state.id,
+		        name: this.state.name,
+		        description: this.state.description,
+		        price: this.state.price,
+		        category_id: this.state.selectedCategoryId
+		    };
+
+	    	// submit form data to api
+	    	$.ajax({
+		        url: "http://react-crud/api/product/update.php",
+		        type : "POST",
+		        contentType : 'application/json',
+		        data : JSON.stringify(form_data),
+		        success : function(response) {
+		            this.setState({successUpdate: response['message']});
+		        }.bind(this),
+		        error: function(xhr, resp, text){
+		            // show error to console
+		            console.log(xhr, resp, text);
+		        }
+		    });
+	    }
+ 
 	    e.preventDefault();
+	}
+
+	validateForm() {
+		var isValid = true;
+		if (this.state.name == '') {
+
+			this.setValidatorState('is_name_valid', false);
+
+			isValid = false;
+		}
+
+		return isValid;
+	}
+
+	setValidatorState(attr, value) {
+		var validator_state = this.state.validator;
+		validator_state[attr] = value;
+		this.setState({validator : validator_state});
 	}
 	 
 	// render component here	
@@ -139,18 +169,28 @@ class UpdateProductComponent extends React.Component{
 	                Read Products
 	            </a>
 	 
-	            <form onSubmit={this.onSave}>
+	            <form id="product-form" onSubmit={this.onSave}>
 	                <table className='table table-bordered table-hover'>
 	                    <tbody>
 	                    <tr>
 	                        <td>Name</td>
 	                        <td>
-	                            <input
-	                                type='text'
-	                                className='form-control'
-	                                value={this.state.name}
-	                                required
-	                                onChange={this.onNameChange} />
+	                        	<div className={'form-group' + (!this.state.validator.is_name_valid ? ' has-error' : '')}>
+	                        		
+	                        		{
+						                !this.state.validator.is_name_valid ? 
+						                	<label className='control-label'>Please fill in this field.</label>
+						                : null
+						            }
+
+		                            <input
+		                                type='text'
+		                                className='form-control name'
+		                                value={this.state.name}
+		                                required
+		                                onChange={this.onNameChange} />
+
+	                             </div>
 	                        </td>
 	                    </tr>
 	 
