@@ -31,7 +31,7 @@ class Product{
                         categories c
                             ON p.category_id = c.id
                 ORDER BY
-                    p.created DESC LIMIT 3";
+                    p.created DESC LIMIT 100";
      
         // prepare query statement
         $stmt = $this->conn->prepare($query);

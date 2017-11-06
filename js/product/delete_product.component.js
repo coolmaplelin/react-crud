@@ -1,6 +1,14 @@
 // component that contains the logic to delete a product
 
 class DeleteProductComponent extends React.Component{		
+	constructor(props) {
+        super(props);
+        this.state = { 
+	        id: props.productId,
+        };
+        this.onDelete = this.onDelete.bind(this);
+    } 
+
     // componentDidMount will be here
     // on mount, change header text
 	componentDidMount(){
@@ -12,7 +20,7 @@ class DeleteProductComponent extends React.Component{
 	onDelete(e){
 	 
 	    // product to delete
-	    var productId = this.props.productId;
+	    var productId = this.state.id;
 	 
 	    // submit form data to api
 	    $.ajax({

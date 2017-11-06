@@ -10,13 +10,24 @@ class CreateProductComponent extends React.Component{
 	        name: '',
 	        description: '',
 	        price: '',
-	        successCreation: null
+	        successCreation: null,
+	        validator: {
+	        	is_name_valid : true
+	        }
         };
+
+        this.onCategoryChange = this.onCategoryChange.bind(this);
+        this.onNameChange = this.onNameChange.bind(this);
+        this.onDescriptionChange = this.onDescriptionChange.bind(this);
+        this.onPriceChange = this.onPriceChange.bind(this);
+        this.onSave = this.onSave.bind(this);
+        this.validateForm = this.validateForm.bind(this);
+        this.setValidatorState = this.setValidatorState.bind(this);
     }    
 	 
 	// on mount, get all categories and store them in this component's state
 	componentDidMount() {
-	    this.serverRequest = $.get("http://localhost/api/category/read.php", function (categories) {
+	    this.serverRequest = $.get("http://react-crud/api/category/read.php", function (categories) {
 	        this.setState({
 	            categories: categories.records
 	        });
@@ -37,8 +48,12 @@ class CreateProductComponent extends React.Component{
 	}
 	 
 	// handle name change
-	onNameChange(e) {
-	    this.setState({name: e.target.value});
+	onNameChange(e){
+		this.setState({name: e.target.value});
+
+		if (e.target.value != '') {
+			this.setValidatorState('is_name_valid', true);
+		}
 	}
 	 
 	// handle description change
@@ -56,40 +71,60 @@ class CreateProductComponent extends React.Component{
 	onSave(e){
 	 
 	    // data in the form
-	    var form_data={
-	        name: this.state.name,
-	        description: this.state.description,
-	        price: this.state.price,
-	        category_id: this.state.selectedCategoryId
-	    };
+	    if (this.validateForm()){
+	    	var form_data={
+		        name: this.state.name,
+		        description: this.state.description,
+		        price: this.state.price,
+		        category_id: this.state.selectedCategoryId
+		    };
 	 
-	    // submit form data to api
-	    $.ajax({
-	        url: "http://localhost/api/product/create.php",
-	        type : "POST",
-	        contentType : 'application/json',
-	        data : JSON.stringify(form_data),
-	        success : function(response) {
-	 
-	            // api message
-	            this.setState({successCreation: response['message']});
-	 
-	            // empty form
-	            this.setState({name: ""});
-	            this.setState({description: ""});
-	            this.setState({price: ""});
-	            this.setState({selectedCategoryId: -1});
-	 
-	        }.bind(this),
-	        error: function(xhr, resp, text){
-	            // show error to console
-	            console.log(xhr, resp, text);
-	        }
-	    });
+		    // submit form data to api
+		    $.ajax({
+		        url: "http://react-crud/api/product/create.php",
+		        type : "POST",
+		        contentType : 'application/json',
+		        data : JSON.stringify(form_data),
+		        success : function(response) {
+		 
+		            // api message
+		            this.setState({successCreation: response['message']});
+		 
+		            // empty form
+		            this.setState({name: ""});
+		            this.setState({description: ""});
+		            this.setState({price: ""});
+		            this.setState({selectedCategoryId: -1});
+		 
+		        }.bind(this),
+		        error: function(xhr, resp, text){
+		            // show error to console
+		            console.log(xhr, resp, text);
+		        }
+		    });
+	    }
 	 
 	    e.preventDefault();
 	}
 	 
+	validateForm() {
+		var isValid = true;
+		if (this.state.name == '') {
+
+			this.setValidatorState('is_name_valid', false);
+
+			isValid = false;
+		}
+
+		return isValid;
+	}
+
+	setValidatorState(attr, value) {
+		var validator_state = this.state.validator;
+		validator_state[attr] = value;
+		this.setState({validator : validator_state});
+	}
+
 	// render component here
 	render() {
 	 
@@ -138,12 +173,22 @@ class CreateProductComponent extends React.Component{
 	                <tr>
 	                    <td>Name</td>
 	                    <td>
-	                        <input
-	                        type='text'
-	                        className='form-control'
-	                        value={this.state.name}
-	                        required
-	                        onChange={this.onNameChange} />
+	                        <div className={'form-group' + (!this.state.validator.is_name_valid ? ' has-error' : '')}>
+	                        		
+                        		{
+					                !this.state.validator.is_name_valid ? 
+					                	<label className='control-label'>Please fill in this field.</label>
+					                : null
+					            }
+
+	                            <input
+	                                type='text'
+	                                className='form-control name'
+	                                value={this.state.name}
+	                                required
+	                                onChange={this.onNameChange} />
+
+                             </div>
 	                    </td>
 	                </tr>
 	 
